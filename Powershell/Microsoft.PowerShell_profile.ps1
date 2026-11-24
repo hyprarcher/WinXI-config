@@ -67,8 +67,11 @@ if (Get-Module -ListAvailable -Name PSReadLine) {
     Set-PSReadLineKeyHandler -Key Ctrl+RightArrow -Function ForwardWord
     Set-PSReadLineKeyHandler -Key Ctrl+z          -Function Undo
     Set-PSReadLineKeyHandler -Key Ctrl+y          -Function Redo
-}
+    }
 
+if ($PSStyle) {
+    $PSStyle.FileInfo.Directory = $PSStyle.Foreground.FromRgb(0x14, 0xa9, 0xfd) + $PSStyle.Bold
+}
 # ------------------------------------------------------------------------------
 #  Tab completion for tools that ship with Windows / .NET
 # ------------------------------------------------------------------------------
