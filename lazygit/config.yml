@@ -1,0 +1,28 @@
+gui:
+  nerdFontsVersion: "3"
+  showFileTree: true
+  border: rounded
+  theme:
+    activeBorderColor:
+      - "#14a9fd" # azure
+      - bold
+    inactiveBorderColor:
+      - "#14304a" # hair
+    searchingActiveBorderColor:
+      - "#ffbc49" # solar
+      - bold
+    optionsTextColor:
+      - "#14a9fd" # azure
+    selectedLineBgColor:
+      - "#07121f" # panel
+    cherryPickedCommitBgColor:
+      - "#004080" # deep
+    cherryPickedCommitFgColor:
+      - "#eaf5ff" # bright
+    unstagedChangesColor:
+      - "#ff9299" # danger
+    defaultFgColor:
+      - "#c7ddf0" # text
+
+os:
+  editPreset: "nvim"

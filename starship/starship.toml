@@ -114,8 +114,7 @@ deleted_style = "bold danger"
 format = "([+$added]($added_style) )([-$deleted]($deleted_style) )"
 
 [fill]
-symbol = "·"
-style = "hair"
+symbol = " "
 
 [nodejs]
 symbol = " "

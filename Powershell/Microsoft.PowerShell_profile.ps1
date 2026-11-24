@@ -15,7 +15,7 @@ $ProfileConfig = @{
     ShowFastfetch        = $true    # run fastfetch on every new terminal
     ClearBeforeFastfetch = $false   # Clear-Host before fastfetch
     UseStarship          = $true    # use the Starship prompt
-    TransientPrompt      = $false    # collapse old prompts to a minimal one
+    TransientPrompt      = $false   # collapse old prompts to a minimal one
 }
 
 function Test-Command {
@@ -29,7 +29,19 @@ try {
     $OutputEncoding = [Text.Encoding]::UTF8
 } catch {}
 
+# Remove background highlight box on directories in ls / Get-ChildItem (planet_blue azure)
+if ($PSStyle) {
+    $PSStyle.FileInfo.Directory = $PSStyle.Foreground.FromRgb(0x14, 0xa9, 0xfd) + $PSStyle.Bold
+}
+
 $env:POWERSHELL_TELEMETRY_OPTOUT = 1
+
+# C compiler for tree-sitter / native builds on Windows (avoids needing full VS cl.exe)
+if (-not $env:CC) {
+    if     (Test-Command zig)   { $env:CC = 'zig cc' }
+    elseif (Test-Command clang) { $env:CC = 'clang' }
+    elseif (Test-Command gcc)   { $env:CC = 'gcc' }
+}
 
 # ------------------------------------------------------------------------------
 #  PSReadLine (built in): predictions, history search, key bindings
@@ -67,13 +79,10 @@ if (Get-Module -ListAvailable -Name PSReadLine) {
     Set-PSReadLineKeyHandler -Key Ctrl+RightArrow -Function ForwardWord
     Set-PSReadLineKeyHandler -Key Ctrl+z          -Function Undo
     Set-PSReadLineKeyHandler -Key Ctrl+y          -Function Redo
-    }
-
-if ($PSStyle) {
-    $PSStyle.FileInfo.Directory = $PSStyle.Foreground.FromRgb(0x14, 0xa9, 0xfd) + $PSStyle.Bold
 }
+
 # ------------------------------------------------------------------------------
-#  Tab completion for tools that ship with Windows / .NET
+#  Tab completion for tools that ship with Windows / .NET / Git
 # ------------------------------------------------------------------------------
 if (Test-Command winget) {
     Register-ArgumentCompleter -Native -CommandName winget -ScriptBlock {
@@ -97,6 +106,31 @@ if (Test-Command dotnet) {
     }
 }
 
+if (Test-Command git) {
+    Register-ArgumentCompleter -Native -CommandName git -ScriptBlock {
+        param($wordToComplete, $commandAst, $cursorPosition)
+        $subcommands = @(
+            'add','branch','checkout','switch','restore','cherry-pick','clone',
+            'commit','diff','fetch','init','log','merge','pull','push','rebase',
+            'reset','revert','stash','status','tag','worktree'
+        )
+        $tokens = $commandAst.CommandElements
+        if ($tokens.Count -le 2) {
+            $subcommands | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {
+                [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+            }
+            return
+        }
+        git for-each-ref --format='%(refname:short)' refs/heads/ refs/remotes/ 2>$null |
+            ForEach-Object { $_ -replace '^origin/', '' } |
+            Sort-Object -Unique |
+            Where-Object { $_ -like "$wordToComplete*" } |
+            ForEach-Object {
+                [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+            }
+    }
+}
+
 # ------------------------------------------------------------------------------
 #  Navigation
 # ------------------------------------------------------------------------------
@@ -112,6 +146,25 @@ function mkcd {
     param([Parameter(Mandatory)][string]$Path)
     New-Item -ItemType Directory -Path $Path -Force | Out-Null
     Set-Location $Path
+}
+function cd {
+    param([Parameter(Position = 0)][string]$Target = '~')
+
+    if ($Target -eq '-') {
+        Set-Location -
+        return
+    }
+
+    if (Test-Path -LiteralPath $Target) {
+        Set-Location -LiteralPath $Target
+        return
+    }
+
+    if (Test-Command z) {
+        z $Target
+    } else {
+        Set-Location $Target
+    }
 }
 
 # ------------------------------------------------------------------------------
@@ -213,7 +266,7 @@ function Get-PubIP { Invoke-RestMethod -Uri 'https://api.ipify.org' }
 function flushdns  { Clear-DnsClientCache; Write-Host 'DNS cache flushed' }
 function path      { $env:Path -split ';' | Where-Object { $_ } }
 
-# Refresh PATH in the current session (handy right after installing Starship/Fastfetch)
+# Refresh PATH in the current session (handy right after installing tools)
 function Update-Path {
     $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
                 [Environment]::GetEnvironmentVariable('Path', 'User')
@@ -229,7 +282,7 @@ function Update-All {
 }
 
 # ------------------------------------------------------------------------------
-#  Git shortcuts (only defined if git exists)
+#  Git & Lazygit shortcuts (only defined if tools exist)
 # ------------------------------------------------------------------------------
 if (Test-Command git) {
     function g   { git @args }
@@ -243,7 +296,10 @@ if (Test-Command git) {
     function gb  { git branch @args }
     function gd  { git diff @args }
     function gl  { git log --oneline --graph --decorate -n 20 }
-    function lg  { lazygit @args }
+
+    if (Test-Command lazygit) {
+        function lg { lazygit @args }
+    }
 }
 
 # ------------------------------------------------------------------------------
@@ -259,7 +315,7 @@ Set-Alias -Name c    -Value Clear-Host
 # ------------------------------------------------------------------------------
 #  Starship prompt
 # ------------------------------------------------------------------------------
-[Environment]::SetEnvironmentVariable('STARSHIP_CONFIG', 'C:/Users/hyprarcher/.config/starship/starship.toml', 'User')
+$env:STARSHIP_CONFIG = Join-Path $HOME '.config\starship\starship.toml'
 if ($ProfileConfig.UseStarship -and (Test-Command starship)) {
     Invoke-Expression (& starship init powershell)
     if ($ProfileConfig.TransientPrompt -and (Test-Command Enable-TransientPrompt)) {
@@ -276,6 +332,18 @@ $isInteractiveHost = ($Host.Name -in 'ConsoleHost', 'Visual Studio Code Host') -
 if ($ProfileConfig.ShowFastfetch -and $isInteractiveHost -and (Test-Command fastfetch)) {
     if ($ProfileConfig.ClearBeforeFastfetch) { Clear-Host }
     fastfetch
+}
+
+# ------------------------------------------------------------------------------
+#  Zoxide - record every directory change (independent of the prompt)
+# ------------------------------------------------------------------------------
+if (Test-Command zoxide) {
+    Invoke-Expression (& { (zoxide init powershell --hook none | Out-String) })
+
+    $ExecutionContext.SessionState.InvokeCommand.LocationChangedAction = {
+        param($sender, $e)
+        try { zoxide add -- $e.NewPath.ProviderPath } catch {}
+    }
 }
 
 Remove-Variable isInteractiveHost -ErrorAction SilentlyContinue

@@ -1,12 +1,13 @@
 local wezterm = require 'wezterm'
 local config = wezterm.config_builder()
+local act = wezterm.action
 
 ------------------------------------------------------------------------
 -- Transparency settings
 ------------------------------------------------------------------------
 local TRANSLUCENT = true -- master switch for the see-through window
 local BLUR = false -- true = frosted Acrylic blur behind the window
-local OPACITY = 0.75    -- 0.0 = fully transparent, 1.0 = solid
+local OPACITY = 0.1    -- 0.0 = fully transparent, 1.0 = solid
 
 -- Shell: PowerShell 7
 config.default_prog = { 'pwsh.exe', '-NoLogo' }
@@ -124,6 +125,23 @@ if TRANSLUCENT then
   config.window_background_opacity = OPACITY
 end
 config.inactive_pane_hsb = { saturation = 0.9, brightness = 0.7 }
+
+------------------------------------------------------------------------
+-- Keybindings
+------------------------------------------------------------------------
+config.keys = {
+  { key = '|', mods = 'CTRL|SHIFT', action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
+  { key = '_', mods = 'CTRL|SHIFT', action = act.SplitVertical { domain = 'CurrentPaneDomain' } },
+  { key = 'LeftArrow',  mods = 'ALT', action = act.ActivatePaneDirection 'Left' },
+  { key = 'RightArrow', mods = 'ALT', action = act.ActivatePaneDirection 'Right' },
+  { key = 'UpArrow',    mods = 'ALT', action = act.ActivatePaneDirection 'Up' },
+  { key = 'DownArrow',  mods = 'ALT', action = act.ActivatePaneDirection 'Down' },
+  {
+    key = 'G',
+    mods = 'CTRL|SHIFT',
+    action = act.SpawnCommandInNewTab { args = { 'lazygit' } },
+  },
+}
 
 ------------------------------------------------------------------------
 -- Top bar: WEZTERM label (left), white rectangle tabs, HOST / TIME (right)
