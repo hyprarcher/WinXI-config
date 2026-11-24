@@ -1,0 +1,38 @@
+// ~/.config/fastfetch/config.jsonc  (Windows: %USERPROFILE%\.config\fastfetch\config.jsonc)
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+
+  "logo": {
+    "type":"iterm",
+    "source": "%USERPROFILE%/.config/fastfetch/spaceship.gif",
+    "width": 64,
+    "height": 16,
+    "padding":{"bottom":2}
+  },
+
+  "display": {
+    "key": { "width": 12 },
+    "color": { "keys": 36}
+  },
+  "modules": [
+    { "type": "custom", "format": "┌────────────┬────────────────────────────────────────┐", "outputColor": "90" },
+    { "type": "os", "key": "OS", "format": "{pretty-name<38} {#90}{#}" },
+    { "type": "kernel", "key": "Kernel", "format": "{release<38} {#90}{#}" },
+    { "type": "uptime", "key": "Uptime", "format": "{formatted<38} {#90}{#}" },
+    { "type": "shell", "key": "Shell", "format": "{pretty-name<38} {#90}{#}" },
+    { "type": "custom", "format": "├────────────┼────────────────────────────────────────┤", "outputColor": "90" },
+    { "type": "host", "key": "Host", "format": "{name<38} {#90}{#}" },
+    { "type": "cpu", "key": "CPU", "format": "{name<38} {#90}{#}" },
+    { "type": "gpu", "key": "GPU", "format": "{name<38} {#90}{#}" },
+    { "type": "memory", "key": "Memory", "format": "{used>9} / {total<26} {#90}{#}" },
+    { "type": "disk", "key": "Disk", "format": "{size-used>9} / {size-total<26} {#90}{#}" },
+    { "type": "custom", "format": "├────────────┼────────────────────────────────────────┤", "outputColor": "90" },
+    { "type": "de", "key": "DE", "format": "{pretty-name<38} {#90}{#}" },
+    { "type": "wm", "key": "WM", "format": "{pretty-name<38} {#90}{#}" },
+    { "type": "terminal", "key": "Terminal", "format": "{pretty-name<38} {#90}{#}" },
+    { "type": "custom", "format": "└────────────┴────────────────────────────────────────┘", "outputColor": "90" },
+
+    // Color palette below the box (key hidden with a single space)
+    { "type": "colors", "key": " ", "symbol": "block", "paddingLeft": 1 }
+  ]
+}

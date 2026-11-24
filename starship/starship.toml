@@ -1,0 +1,148 @@
+# Starship prompt themed for WezTerm's `planet_blue` palette
+# Palette tokens:
+#   ink    = "#00060c"
+#   panel  = "#07121f"
+#   hair   = "#14304a"
+#   dim    = "#4b6c8a"
+#   text   = "#c7ddf0"
+#   bright = "#eaf5ff"
+#   azure  = "#14a9fd"
+#   glow   = "#0070c0"
+#   deep   = "#004080"
+#   solar  = "#ffbc49"
+
+"$schema" = 'https://starship.rs/config-schema.json'
+
+add_newline = true
+
+format = """
+$os\
+$username\
+$directory\
+$git_branch\
+$git_status\
+$git_metrics\
+$fill\
+$nodejs\
+$python\
+$rust\
+$golang\
+$cmd_duration\
+$line_break\
+$character"""
+
+palette = "planet_blue"
+
+[palettes.planet_blue]
+ink = "#00060c"
+ground = "#01050a"
+panel = "#07121f"
+hair = "#14304a"
+dim = "#4b6c8a"
+text = "#c7ddf0"
+bright = "#eaf5ff"
+ice = "#ffffff"
+azure = "#14a9fd"
+glow = "#0070c0"
+deep = "#004080"
+solar = "#ffbc49"
+danger = "#ff9299"
+ok = "#95dbc0"
+
+[os]
+disabled = false
+format = "[$symbol]($style) "
+style = "bold azure"
+
+[os.symbols]
+Windows = ""
+Arch = "󰣇"
+Ubuntu = ""
+Debian = ""
+Fedora = ""
+Macos = ""
+Linux = ""
+
+[username]
+show_always = false
+format = "[$user]($style)[@](dim)"
+style_user = "bold bright"
+style_root = "bold solar"
+
+[directory]
+truncation_length = 4
+truncate_to_repo = true
+fish_style_pwd_dir_length = 0
+format = "[ ](glow)[$path]($style)[$read_only]($read_only_style) "
+style = "bold text"
+read_only = " "
+read_only_style = "bold solar"
+repo_root_format = "[󰉋 ](azure)[$before_root_path](dim)[$repo_root](bold bright)[$path](text)[$read_only]($read_only_style) "
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = "󰝚 "
+"Pictures" = " "
+"Projects" = "󰲋 "
+"Developer" = "󰲋 "
+
+[git_branch]
+symbol = " "
+format = "on [$symbol$branch]($style) "
+style = "bold azure"
+
+[git_status]
+format = '([\[$all_status$ahead_behind\]]($style) )'
+style = "bold solar"
+conflicted = "󰞇"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+up_to_date = ""
+untracked = "?${count}"
+stashed = "󰏗"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
+
+[git_metrics]
+disabled = false
+added_style = "bold ok"
+deleted_style = "bold danger"
+format = "([+$added]($added_style) )([-$deleted]($deleted_style) )"
+
+[fill]
+symbol = "·"
+style = "hair"
+
+[nodejs]
+symbol = " "
+format = "[$symbol($version)]($style) "
+style = "ok"
+
+[python]
+symbol = " "
+format = '[${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+style = "azure"
+
+[rust]
+symbol = " "
+format = "[$symbol($version)]($style) "
+style = "solar"
+
+[golang]
+symbol = " "
+format = "[$symbol($version)]($style) "
+style = "bright"
+
+[cmd_duration]
+min_time = 1500
+format = "[󱦟 $duration]($style) "
+style = "bold solar"
+
+[character]
+success_symbol = "[❯](bold azure)"
+error_symbol = "[❯](bold danger)"
+vicmd_symbol = "[❮](bold solar)"
